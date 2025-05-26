@@ -10,26 +10,25 @@ def corrigir_capitalizacao(texto):
             if parte.lower() in excecoes:
                 resultado.append(parte.lower())
             else:
-                if parte == parte.upper() and len(parte) > 1:
-                    parte = parte.capitalize()
-                elif not parte.istitle():
+                # Corrigir apenas palavras em maiúsculas e que não sejam abreviações (ex: siglas)
+                if parte.isupper() and len(parte) > 1:
                     parte = parte.capitalize()
                 resultado.append(parte)
         return ' '.join(resultado)
 
-    # Padrão simplificado e corrigido
+    # Padrão para identificar blocos em maiúsculas (palavras compostas)
     padrao = re.compile(
-        r'\b([A-ZÀ-Ú]{2,}(?:\s+[A-ZÀ-Ú]+)*)\b'  # Captura sequências de palavras todas maiúsculas
+        r'\b([A-ZÀ-Ú]{2,}(?:\s+[A-ZÀ-Ú]{2,})*)\b'
     )
 
-    texto_corrigido = padrao.sub(
-        lambda match: capitalizar(match.group(1)),
-        texto
-    )
-    
+    # Função para preservar espaços originais e capitalizar
+    def substituir(match):
+        texto_achado = match.group(1)
+        return capitalizar(texto_achado)
+
+    texto_corrigido = padrao.sub(substituir, texto)
     return texto_corrigido
 
-# Extrai o texto do PDF mantendo formatação original
 with pdfplumber.open(".pdf") as pdf:
     texto_original = "\n".join(page.extract_text() for page in pdf.pages)
 
